@@ -19,6 +19,6 @@ router.post('/contact-dealer', useAuth, userContact)
 router.post('/upload-cardata',upload, useAuth, addCar)
 router.get('/get-cardata', getCar )
 router.delete('/delete-cardata/:id', useAuth, deletCar)
-// router.put('/update-cardata/:id', upload, useAuth, updateCar)
+router.put('/update-cardata/:id', upload, useAuth, updateCar)
 
 export default router

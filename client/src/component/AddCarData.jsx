@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDropzone } from 'react-dropzone'
+import { useDropzone } from 'react-dropzone';
 import { GoArrowLeft } from "react-icons/go";
 import { HiOutlinePlus } from "react-icons/hi";
 import { useData } from '../context/userContex';
@@ -8,100 +8,79 @@ import { useCarData } from '../context/carContext';
 import axios from 'axios';
 
 function AddCarData() {
-    const {token} = useData()
-    const {editing, setediting, fetchCarData, carData, setcarData,} = useCarData()
-    const [files, setfiles] = useState([])
-    
+    const { token } = useData();
+    const { editing, setediting, fetchCarData, carData, setcarData } = useCarData();
+    const [files, setfiles] = useState([]);
 
-    const navigate = useNavigate()
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
-        setcarData({...carData, [e.target.name]: e.target.value})
-    }
-
-    const formData = new FormData()
-    // formData.append('file', file)
-    files.map(file => { formData.append('file', file) })
-    formData.append('title', carData.title)
-    formData.append('description', carData.description)
-    formData.append('price', carData.price)
-    formData.append('features', carData.features)
-    formData.append('brand', carData.brand)
-    formData.append('model', carData.model)
-    formData.append('condition', carData.condition)
-    formData.append('year', carData.year)
-    formData.append('body_type', carData.body_type)
-    formData.append('seats', carData.seats)
-    formData.append('color', carData.color)
-    formData.append('fuel_type', carData.fuel_type)
-    formData.append('mileage', carData.mileage)
-    formData.append('transmission', carData.transmission)
-    formData.append('drivetrain', carData.drivetrain)
-    formData.append('power', carData.power)
-    formData.append('battery_capacity', carData.battery_capacity)
-    formData.append('charge_port', carData.charge_port)
-    formData.append('charge_speed', carData.charge_speed)
-    formData.append('charge_time', carData.charge_time)
-    formData.append('length', carData.length)
-    formData.append('width', carData.width)
-    formData.append('height', carData.height)
-    formData.append('cargo_volume', carData.cargo_volume)
-
+        setcarData({ ...carData, [e.target.name]: e.target.value });
+    };
 
     const onDrop = (dropfile) => {
         const newfile = dropfile.map(file =>
             Object.assign(file, { preview: URL.createObjectURL(file) })
-        )
+        );
         setfiles([...files, ...newfile]);
-    }
+    };
 
-    const { getRootProps, getInputProps } = useDropzone({ onDrop, accept: 'image/*, video/*' })
+    const { getRootProps, getInputProps } = useDropzone({ onDrop, accept: 'image/*' });
 
     const handleSubmit = async () => {
-        if(token) {
+        const formData = new FormData();
+        files.forEach(file => formData.append('images', file));
+        Object.keys(carData).forEach(key => formData.append(key, carData[key]));
+
+        if (token) {
             try {
                 const response = await axios.post('http://localhost:5000/upload-cardata', formData, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
-                })
-                console.log(response);
-                setfiles(null)
-                navigate('/admin')
-                fetchCarData()
+                });
+                // console.log(response);
+                setfiles([]);
+                navigate('/admin');
+                fetchCarData();
             } catch (error) {
-                console.log('error in uploading', error);
+                console.log('Error in uploading', error);
             }
+        } else {
+            console.log('Token not found');
         }
-        else{
-            console.log('token not found');
-        }
-    }
+    };
 
-    const handleUpdata = async () => {
-        if(token){
-          try {
-            const response = await axios.put(`http://localhost:5000/update-cardata/${editing}`, formData, {
-              headers: {
-                Authorization: `Bearer ${token}`
-              }
-            })
-            setfiles(null)
-            navigate('/admin')
-            fetchCarData()
-            // console.log(response);
-          } catch (error) {
-            console.log(error);
-          }
+    const handleUpdate = async () => {
+        const formData = new FormData();
+        files.forEach(file => formData.append('images', file));
+        Object.keys(carData).forEach(key => formData.append(key, carData[key]));
+    
+        if (token) {
+            try {
+                const response = await axios.put(`http://localhost:5000/update-cardata/${editing}`, formData, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                console.log('Update response:', response);
+                setfiles([]);
+                navigate('/admin');
+                fetchCarData();
+            } catch (error) {
+                console.log('Error in updating', error);
+            }
+        } else {
+            console.log('Token not found');
         }
-      }
-
+    };
+    
 
     return (
         <>
             <section>
                 <div className='main w-[1146px] mx-auto my-[80px] '>
-                    <div className='backbtn text-[40px]' onClick={()=> navigate('/admin')}><GoArrowLeft /></div>
+                    <div className='backbtn text-[40px]' onClick={() => navigate('/admin')}><GoArrowLeft /></div>
                     <div className='data w-[930px] mx-auto'>
                         <label className='font-[500] block mb-2' htmlFor="title">Title</label>
                         <input className='w-full bg-[#152836] rounded mb-7 px-4 py-3 text-[15px] font-[600]' type="text" name="title" id="title" placeholder='Add Full Name' value={carData.title} onChange={handleChange} />
@@ -129,7 +108,7 @@ function AddCarData() {
                             <div>
                                 <label className='font-[500] block mb-2' htmlFor="body_type">Body type</label>
                                 <select className='bg-[#152836] w-[300px] rounded px-4 py-3 text-[15px] font-[600]' name="body_type" id="body_type" value={carData.body_type} onChange={handleChange}>
-                                    <option value="Sedan" >Sedan</option>
+                                    <option value="Sedan">Sedan</option>
                                     <option value="Hatch-Back">Hatch-Back</option>
                                     <option value="Micro-SUV">Micro-SUV</option>
                                     <option value="SUV">SUV</option>
@@ -137,7 +116,6 @@ function AddCarData() {
                                     <option value="Truck">Truck</option>
                                     <option value="Sports">Sports</option>
                                 </select>
-                                {/* <input className=' bg-[#152836] w-[300px] rounded px-4 py-3 text-[15px] font-[600]' type="text" name="body_type" id="body_type" placeholder='Add Body Type' /> */}
                             </div>
                             <div>
                                 <label className='font-[500] block mb-2' htmlFor="color">Color</label>
@@ -152,17 +130,6 @@ function AddCarData() {
                             </div>
                             <div>
                                 <label className='font-[500] block mb-2' htmlFor="features">Features</label>
-                                {/* <select className='bg-[#152836] w-[300px] rounded px-4 py-3 text-[15px] font-[600]' name="features"  id="body_type">
-                                    <option value="Auto-pilot">Auto-pilot</option>
-                                    <option value="Auto-Parking">Auto-Parking</option>
-                                    <option value="Airbags">Airbags</option>
-                                    <option value="Adaptive cruise control">Adaptive cruise control</option>
-                                    <option value="Anti-lock brakes">Anti-lock brakes</option>
-                                    <option value="Ventilated seats">Ventilated seats</option>
-                                    <option value="ADAS">ADAS</option>
-                                    <option value="Automatic emergency braking">Automatic emergency braking</option>
-                                    <option value="Stability control">Stability control</option>
-                                </select> */}
                                 <input className=' bg-[#152836] w-[300px] rounded px-4 py-3 text-[15px] font-[600]' type="text" name="features" id="features" placeholder='Add features' value={carData.features} onChange={handleChange} />
                             </div>
                             <div>
@@ -185,7 +152,6 @@ function AddCarData() {
                                 <input className=' bg-[#152836] w-[300px] rounded px-4 py-3 text-[15px] font-[600]' type="text" name="transmission" id="transmission" placeholder='Add Transmission' value={carData.transmission} onChange={handleChange} />
                             </div>
                         </div>
-
                         <div className='flex justify-between w-full mb-7'>
                             <div>
                                 <label className='font-[500] block mb-2' htmlFor="power">Power</label>
@@ -247,53 +213,35 @@ function AddCarData() {
                             <textarea className=' w-[100%] h-[150px] resize-none bg-[#152836] rounded px-4 py-3 text-[15px] font-[600] ' name="description" id="description" placeholder='Write description about your car ' value={carData.description} onChange={handleChange}></textarea>
                         </div>
 
-                        <div className=' mb-7'>
-                            <div>
-                                <h3 className='text-[28px] font-[700] mb-6 border-b-2 inline-block'>Images & Video</h3>
-                                <p className='font-[500] mb-2'>Upload your Image / Video</p>
-                            </div>
-                            <div className='flex justify-between w-full'>
-                                <div {...getRootProps({ className: 'dropzone' })} className="border-2 border-dashed border-[#152836] rounded-lg w-[322px] h-[244px] content-center cursor-pointer bg-[#0b0c10]">
-                                    <input {...getInputProps()} />
-                                    <p className='text-[64px] flex justify-center'><HiOutlinePlus /></p>
-                                </div>
 
-
-                                <div className="flex flex-wrap mt-4 w-[60%] justify-between">
-                                    {files.map((file, index) => (
-                                        <div key={index} className="m-2">
-                                            {file.type.startsWith('image/') ? (
-                                                <img
-                                                    src={file.preview}
-                                                    alt="Preview"
-                                                    className="w-[127px] h-[105px] object-cover"
-                                                    onLoad={() => { URL.revokeObjectURL(file.preview); }}
-                                                />
-                                            ) : (
-                                                <video
-                                                    src={file.preview}
-                                                    controls
-                                                    className="w-[127px] h-[105px] object-cover"
-                                                    onLoad={() => { URL.revokeObjectURL(file.preview); }}
-                                                />
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
+                        <div>
+                            <label className='font-[500] block mb-2'>Image Upload</label>
+                            <div {...getRootProps()} className='bg-[#152836] w-[300px] rounded mb-7 px-4 py-3 text-[15px] font-[600] flex items-center justify-center border-dashed border-2'>
+                                <input {...getInputProps()} />
+                                <p className='flex items-center gap-2'>Drag and drop files here, or click to select files <HiOutlinePlus /></p>
                             </div>
                         </div>
-                        {
-                            !editing ? (<button className='bg-[#007cc7] w-full rounded py-4 mt-9' onClick={handleSubmit}>UPLOAD</button>) 
-                            : 
-                            (<button className='bg-[#007cc7] w-full rounded py-4 mt-9' onClick={handleUpdata}>UPDATE</button>)
-                        }
-                        
 
+                        <div className='flex gap-4 mb-7'>
+                            {files.map(file => (
+                                <div key={file.path} className='w-[100px] h-[100px] relative'>
+                                    <img src={file.preview} alt={file.name} className='w-full h-full object-cover' />
+                                </div>
+                            ))}
+                        </div>
+
+                        <div>
+                            {editing ? (
+                                <button className='bg-blue-500 text-white px-6 py-2 rounded' onClick={handleUpdate}>Update Car</button>
+                            ) : (
+                                <button className='bg-green-500 text-white px-6 py-2 rounded' onClick={handleSubmit}>Add Car</button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </section>
         </>
-    )
+    );
 }
 
-export default AddCarData
+export default AddCarData;
